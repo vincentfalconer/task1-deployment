@@ -30,7 +30,6 @@ pipeline {
                 sh '''
                 cd Task1
                 docker build -t $APP_IMAGE -f Dockerfile .
-                docker build -t $NGINX_IMAGE -f Dockerfile.nginx .
                 '''
             }
         }
