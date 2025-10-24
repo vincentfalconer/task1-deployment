@@ -35,22 +35,37 @@ pipeline {
             }
         }
 
-      stage('Run Containers') {
-          steps {
-              sh '''
-              docker run -d --name task1-container --network task1-net -v task1-data:/app/data $APP_IMAGE
-              docker run -d --name nginx --network task1-net -p 80:80 -v "$(pwd)/Task1/nginx.conf:/etc/nginx/nginx.conf" $NGINX_IMAGE
-              '''
+        stage('Security Scan') {
+            steps {
+                sh '''
+                mkdir -p trivy-reports
+                trivy fs --format json --output trivy-reports/fs-scan.json .
+                trivy fs --format table --output trivy-reports/fs-scan.txt .
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-reports/*', fingerprint: true
+                }
+            }
+        }
+
+        stage('Run Containers') {
+            steps {
+                sh '''
+                docker run -d --name task1-container --network task1-net -v task1-data:/app/data $APP_IMAGE
+                docker run -d --name nginx --network task1-net -p 80:80 -v "$(pwd)/Task1/nginx.conf:/etc/nginx/nginx.conf" $NGINX_IMAGE
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "Deployment completed successfully!"
+            echo "Deployment and security scan completed successfully!"
         }
         failure {
-            echo "Deployment failed!"
+            echo "Pipeline failed!"
         }
     }
 }
