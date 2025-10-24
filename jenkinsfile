@@ -35,12 +35,12 @@ pipeline {
             }
         }
 
-        stage('Run Containers') {
-            steps {
-                sh '''
-                docker run -d --name app --network task1-net -v task1-data:/app/data $APP_IMAGE
-                docker run -d --name nginx --network task1-net -p 80:80 -v $(pwd)/Task1/nginx.conf:/etc/nginx/nginx.conf $NGINX_IMAGE
-                '''
+      stage('Run Containers') {
+          steps {
+              sh '''
+              docker run -d --name app --network task1-net -v task1-data:/app/data $APP_IMAGE
+              docker run -d --name nginx --network task1-net -p 80:80 -v "$(pwd)/Task1/nginx.conf:/etc/nginx/nginx.conf" $NGINX_IMAGE
+              '''
             }
         }
     }
