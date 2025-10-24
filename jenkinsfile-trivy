@@ -1,0 +1,30 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Trivy Scan') {
+            steps {
+                sh '''
+                mkdir -p trivy-reports
+                trivy fs --format json --output trivy-reports/fs-scan.json .
+                trivy fs --format table --output trivy-reports/fs-scan.txt .
+                '''
+            }
+        }
+
+        stage('Archive Artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'trivy-reports/*', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Trivy scan completed and artifacts archived!"
+        }
+        failure {
+            echo "Trivy scan failed!"
+        }
+    }
+}
