@@ -58,11 +58,32 @@ pipeline {
                 '''
             }
         }
+
+        stage('Docker Hub Login') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Push Images') {
+            steps {
+                sh '''
+                docker tag $APP_IMAGE $DOCKER_USER/task1-app:latest
+                docker tag $NGINX_IMAGE $DOCKER_USER/task1-nginx:latest
+                docker push $DOCKER_USER/task1-app:latest
+                docker push $DOCKER_USER/task1-nginx:latest
+                '''
+            }
+        }
     }
 
     post {
         success {
-            echo "Deployment and security scan completed successfully!"
+            echo "Deployment, security scan, and Docker Hub push completed successfully!"
         }
         failure {
             echo "Pipeline failed!"
